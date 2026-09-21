@@ -1,18 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm } from '@refinedev/react-hook-form';
-import { useSelect } from '@refinedev/core';
 import { CreateView, CreateViewHeader } from '@/components/refine-ui/views/create-view';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Form,
   FormControl,
@@ -22,20 +14,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-const subjectSchema = z.object({
-  departmentId: z.number({ message: 'Department is required' }),
-  name: z.string().min(1, 'Name is required').max(255),
+const departmentSchema = z.object({
   code: z.string().min(1, 'Code is required').max(50),
+  name: z.string().min(1, 'Name is required').max(255),
   description: z.string().max(255).optional(),
 });
 
-type SubjectFormValues = z.infer<typeof subjectSchema>;
+type DepartmentFormValues = z.infer<typeof departmentSchema>;
 
-const SubjectsCreate = () => {
+const DepartmentsCreate = () => {
   const form = useForm({
-    resolver: zodResolver(subjectSchema),
-    defaultValues: { name: '', code: '', description: '' },
-    refineCoreProps: { resource: 'subjects' },
+    resolver: zodResolver(departmentSchema),
+    defaultValues: { code: '', name: '', description: '' },
+    refineCoreProps: { resource: 'departments' },
   });
 
   const {
@@ -44,12 +35,6 @@ const SubjectsCreate = () => {
     refineCore: { onFinish },
     formState: { isSubmitting },
   } = form;
-
-  const { options: departmentOptions } = useSelect({
-    resource: 'departments',
-    optionLabel: 'name',
-    optionValue: 'id',
-  });
 
   return (
     <CreateView>
@@ -61,27 +46,13 @@ const SubjectsCreate = () => {
         >
           <FormField
             control={control}
-            name='departmentId'
+            name='code'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Department</FormLabel>
-                <Select
-                  value={field.value ? String(field.value) : undefined}
-                  onValueChange={(value) => field.onChange(Number(value))}
-                >
-                  <FormControl>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Select a department' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {departmentOptions.map((option) => (
-                      <SelectItem key={option.value} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Code</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -92,19 +63,6 @@ const SubjectsCreate = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name='code'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Code</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -134,4 +92,4 @@ const SubjectsCreate = () => {
   );
 };
 
-export default SubjectsCreate;
+export default DepartmentsCreate;

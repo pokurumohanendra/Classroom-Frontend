@@ -11,12 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search } from 'lucide-react';
+import { Pencil, Search, Trash } from 'lucide-react';
 import { useTable } from '@refinedev/react-table';
 import { useList } from '@refinedev/core';
 import { useMemo, useState } from 'react';
-import { Department, Subject } from '@/types';
+import { Department, SubjectWithDepartment } from '@/types';
 import type { ColumnDef } from '@tanstack/react-table';
+import { EditButton } from '@/components/refine-ui/buttons/edit';
+import { DeleteButton } from '@/components/refine-ui/buttons/delete';
 
 const SubjectsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,9 +36,9 @@ const SubjectsList = () => {
     [departmentsResult]
   );
   const departmentFilters = selectedDepartment === 'all' ? [] : [{ field: 'department', operator: 'eq' as const   , value: selectedDepartment }];
-  const searchFilters = searchQuery ? [{ field: 'name', operator: 'contains' as const, value: searchQuery }] : [];
-  const subjectTable = useTable<Subject>({
-    columns:useMemo<ColumnDef<Subject>[]>(() => [
+  const searchFilters = searchQuery ? [{ field: 'search', operator: 'contains' as const, value: searchQuery }] : [];
+  const subjectTable = useTable<SubjectWithDepartment>({
+    columns:useMemo<ColumnDef<SubjectWithDepartment>[]>(() => [
       {id:'code',
         accessorKey: 'code',
          size: 100,
@@ -65,7 +67,22 @@ const SubjectsList = () => {
         header: ()=> <p className='column-title '>Description</p>,
         cell: ({ getValue }) => <span className='truncate line-clamp-2'>{getValue<string>()}</span>,
         filterFn: 'includesString',
-      }
+      },
+      {
+        id: 'actions',
+        size: 100,
+        header: () => <p className='column-title '>Actions</p>,
+        cell: ({ row }) => (
+          <div className='flex gap-2'>
+            <EditButton size='icon' variant='ghost' recordItemId={row.original.id}>
+              <Pencil className='h-4 w-4' />
+            </EditButton>
+            <DeleteButton size='icon' recordItemId={row.original.id}>
+              <Trash className='h-4 w-4' />
+            </DeleteButton>
+          </div>
+        ),
+      },
     ], []),
     refineCoreProps: {
       resource: 'subjects',

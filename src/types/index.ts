@@ -1,12 +1,3 @@
-export type Subject = {
-    id: number;
-    name: string;
-    code: string;
-    description: string;
-    department: string;
-    createdAt?: string;
-};
-
 export type ListResponse<T = unknown> = {
     data?: T[];
     pagination?: {
@@ -57,6 +48,12 @@ declare global {
 export interface UploadWidgetValue {
     url: string;
     publicId: string;
+    /**
+     * Only present right after a fresh unsigned upload; Cloudinary's
+     * delete_token expires ~10 minutes after upload and lets the browser
+     * delete that asset directly, without hitting our backend.
+     */
+    deleteToken?: string;
 }
 
 export interface UploadWidgetProps {
@@ -73,43 +70,98 @@ export enum UserRole {
 
 export type User = {
     id: string;
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image?: string | null;
+    imageCldPubId?: string | null;
+    role: UserRole;
     createdAt: string;
     updatedAt: string;
-    email: string;
-    name: string;
-    role: UserRole;
-    image?: string;
-    imageCldPubId?: string;
-    department?: string;
-};
-
-export type Schedule = {
-    day: string;
-    startTime: string;
-    endTime: string;
 };
 
 export type Department = {
     id: number;
+    code: string;
     name: string;
-    description: string;
+    description?: string | null;
+    createdAt: string;
+    updatedAt: string;
 };
 
-export type ClassDetails = {
+export type DepartmentListItem = Department & {
+    totalSubjects: number;
+};
+
+export type DepartmentTotals = {
+    subjects: number;
+    classes: number;
+    enrolledStudents: number;
+};
+
+export type DepartmentWithTotals = {
+    department: Department;
+    totals: DepartmentTotals;
+};
+
+export type Subject = {
+    id: number;
+    departmentId: number;
+    name: string;
+    code: string;
+    description?: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type SubjectWithDepartment = Subject & {
+    department: Department;
+};
+
+export type Teacher = {
+    id: number;
+    userId: string;
+    user?: Pick<User, "id" | "name" | "email">;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type Student = {
+    id: number;
+    userId: string;
+    user?: Pick<User, "id" | "name" | "email">;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ClassStatus = "active" | "inactive" | "archived";
+
+export type ClassItem = {
     id: number;
     name: string;
-    description: string;
-    status: "active" | "inactive";
+    inviteCode: string;
+    subjectId: number;
+    teacherId: number;
+    description?: string | null;
+    bannerUrl?: string | null;
+    bannerCldPubId?: string | null;
     capacity: number;
-    courseCode: string;
-    courseName: string;
-    bannerUrl?: string;
-    bannerCldPubId?: string;
-    subject?: Subject;
-    teacher?: User;
-    department?: Department;
-    schedules: Schedule[];
-    inviteCode?: string;
+    status: ClassStatus;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ClassWithRelations = ClassItem & {
+    subject: Subject | null;
+    teacher: Teacher | null;
+};
+
+export type Enrollment = {
+    id: number;
+    studentId: number;
+    classId: number;
+    enrolledAt: string;
+    updatedAt: string;
 };
 
 export type SignUpPayload = {

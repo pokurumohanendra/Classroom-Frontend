@@ -4,7 +4,7 @@ import type { HttpError, BaseRecord } from "@refinedev/core";
 import type { UseTableReturnType } from "@refinedev/react-table";
 import type { Column } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -40,6 +40,7 @@ export function DataTable<TData extends BaseRecord>({
   const columns = getAllColumns();
   const leafColumns = table.reactTable.getAllLeafColumns();
   const isLoading = tableQuery.isLoading;
+  const isError = tableQuery.isError;
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLTableElement>(null);
@@ -159,6 +160,12 @@ export function DataTable<TData extends BaseRecord>({
                   </TableCell>
                 </TableRow>
               </>
+            ) : isError ? (
+              <DataTableError
+                isOverflowing={isOverflowing}
+                columnsLength={columns.length}
+                error={tableQuery.error}
+              />
             ) : getRowModel().rows?.length ? (
               getRowModel().rows.map((row) => {
                 return (
@@ -251,6 +258,56 @@ function DataTableNoData({
           </div>
           <div className={cn("text-sm", "text-muted-foreground")}>
             This table is empty for the time being.
+          </div>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function DataTableError({
+  isOverflowing,
+  columnsLength,
+  error,
+}: {
+  isOverflowing: { horizontal: boolean; vertical: boolean };
+  columnsLength: number;
+  error: HttpError | null;
+}) {
+  return (
+    <TableRow className="hover:bg-transparent">
+      <TableCell
+        colSpan={columnsLength}
+        className={cn("relative", "text-center")}
+        style={{ height: "490px" }}
+      >
+        <div
+          className={cn(
+            "absolute",
+            "inset-0",
+            "flex",
+            "flex-col",
+            "items-center",
+            "justify-center",
+            "gap-2",
+            "bg-background",
+            "px-4"
+          )}
+          style={{
+            position: isOverflowing.horizontal ? "sticky" : "absolute",
+            left: isOverflowing.horizontal ? "50%" : "50%",
+            transform: "translateX(-50%)",
+            zIndex: isOverflowing.horizontal ? 2 : 1,
+            width: isOverflowing.horizontal ? "fit-content" : "100%",
+            minWidth: "300px",
+          }}
+        >
+          <TriangleAlert className={cn("h-6", "w-6", "text-destructive")} />
+          <div className={cn("text-lg", "font-semibold", "text-foreground")}>
+            Couldn't load this data
+          </div>
+          <div className={cn("text-sm", "text-muted-foreground", "max-w-md")}>
+            {error?.message ?? "An unexpected error occurred."}
           </div>
         </div>
       </TableCell>

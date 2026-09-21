@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useForm } from '@refinedev/react-hook-form';
 import { useSelect } from '@refinedev/core';
-import { CreateView, CreateViewHeader } from '@/components/refine-ui/views/create-view';
+import { EditView, EditViewHeader } from '@/components/refine-ui/views/edit-view';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,17 +31,16 @@ const subjectSchema = z.object({
 
 type SubjectFormValues = z.infer<typeof subjectSchema>;
 
-const SubjectsCreate = () => {
+const SubjectsEdit = () => {
   const form = useForm({
     resolver: zodResolver(subjectSchema),
-    defaultValues: { name: '', code: '', description: '' },
     refineCoreProps: { resource: 'subjects' },
   });
 
   const {
     handleSubmit,
     control,
-    refineCore: { onFinish },
+    refineCore: { onFinish, formLoading, query },
     formState: { isSubmitting },
   } = form;
 
@@ -49,11 +48,12 @@ const SubjectsCreate = () => {
     resource: 'departments',
     optionLabel: 'name',
     optionValue: 'id',
+    defaultValue: query?.data?.data?.departmentId,
   });
 
   return (
-    <CreateView>
-      <CreateViewHeader />
+    <EditView>
+      <EditViewHeader />
       <Form {...form}>
         <form
           className='flex flex-col gap-4 max-w-lg'
@@ -93,7 +93,7 @@ const SubjectsCreate = () => {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,7 +106,7 @@ const SubjectsCreate = () => {
               <FormItem>
                 <FormLabel>Code</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,19 +119,19 @@ const SubjectsCreate = () => {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} />
+                  <Textarea {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type='submit' disabled={isSubmitting} className='w-fit'>
+          <Button type='submit' disabled={isSubmitting || formLoading} className='w-fit'>
             Save
           </Button>
         </form>
       </Form>
-    </CreateView>
+    </EditView>
   );
 };
 
-export default SubjectsCreate;
+export default SubjectsEdit;
