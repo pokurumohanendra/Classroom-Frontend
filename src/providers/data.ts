@@ -65,10 +65,14 @@ getOne:{
   mapResponse: async (response, params) => {
     if (!response.ok) throw await buildHttpError(response, params.resource);
     const payload: GetOneResponse<Record<string, unknown>> = await response.json();
-    // The departments show endpoint nests the record under `data.department`.
+    // The departments show endpoint nests the record under `data.department`
+    // alongside a `totals` summary -- flatten department fields to the top
+    // level (so useForm's edit page keeps working unchanged) while keeping
+    // `totals` accessible for the show page.
     if (params.resource === "departments") {
-      const data = payload.data as { department?: unknown } | undefined;
-      return data?.department ?? data;
+      const data = payload.data as { department?: Record<string, unknown>; totals?: unknown } | undefined;
+      if (data?.department) return { ...data.department, totals: data.totals };
+      return data;
     }
     return payload.data;
   },

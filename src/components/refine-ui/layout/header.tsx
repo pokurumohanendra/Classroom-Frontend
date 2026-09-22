@@ -11,6 +11,7 @@ import {
 import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/refine-ui/theme/theme-toggle";
 import { UserAvatar } from "@/components/refine-ui/layout/user-avatar";
+import { GlobalSearch } from "@/components/refine-ui/layout/global-search";
 import { useSidebar, SidebarTrigger } from "@/components/ui/sidebar";
 import { LogOutIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,13 +36,17 @@ function DesktopHeader() {
         "border-b",
         "border-border",
         "bg-sidebar",
+        "pl-4",
         "pr-3",
-        "justify-end",
+        "justify-between",
         "z-40"
       )}
     >
-      <ThemeToggle />
-      <UserDropdown />
+      <GlobalSearch />
+      <div className={cn("flex", "items-center", "gap-4")}>
+        <ThemeToggle />
+        <UserDropdown />
+      </div>
     </header>
   );
 }

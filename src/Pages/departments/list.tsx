@@ -4,9 +4,10 @@ import { ListView } from '@/components/refine-ui/views/list-view';
 import { CreateButton } from '@/components/refine-ui/buttons/create';
 import { EditButton } from '@/components/refine-ui/buttons/edit';
 import { DeleteButton } from '@/components/refine-ui/buttons/delete';
+import { ShowButton } from '@/components/refine-ui/buttons/show';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Search, Trash } from 'lucide-react';
+import { Eye, Pencil, Search, Trash } from 'lucide-react';
 import { useTable } from '@refinedev/react-table';
 import { useMemo, useState } from 'react';
 import { DepartmentListItem } from '@/types';
@@ -48,10 +49,13 @@ const DepartmentsList = () => {
       },
       {
         id: 'actions',
-        size: 100,
+        size: 150,
         header: () => <p className='column-title'>Actions</p>,
         cell: ({ row }) => (
           <div className='flex gap-2'>
+            <ShowButton size='icon' variant='ghost' recordItemId={row.original.id}>
+              <Eye className='h-4 w-4' />
+            </ShowButton>
             <EditButton size='icon' variant='ghost' recordItemId={row.original.id}>
               <Pencil className='h-4 w-4' />
             </EditButton>

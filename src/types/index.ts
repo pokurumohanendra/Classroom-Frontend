@@ -116,6 +116,7 @@ export type Subject = {
 
 export type SubjectWithDepartment = Subject & {
     department: Department;
+    totalClasses?: number;
 };
 
 export type Teacher = {
@@ -147,6 +148,7 @@ export type ClassItem = {
     bannerCldPubId?: string | null;
     capacity: number;
     status: ClassStatus;
+    enrolledCount: number;
     createdAt: string;
     updatedAt: string;
 };
@@ -156,6 +158,16 @@ export type ClassWithRelations = ClassItem & {
     teacher: Teacher | null;
 };
 
+export type CapacityStatus = "available" | "nearFull" | "full";
+
+export const capacityStatusOf = (enrolledCount: number, capacity: number): CapacityStatus => {
+    if (capacity <= 0) return "available";
+    const ratio = enrolledCount / capacity;
+    if (ratio >= 1) return "full";
+    if (ratio >= 0.8) return "nearFull";
+    return "available";
+};
+
 export type Enrollment = {
     id: number;
     studentId: number;
@@ -163,6 +175,59 @@ export type Enrollment = {
     enrolledAt: string;
     updatedAt: string;
 };
+
+export type EnrollmentWithStudent = Enrollment & {
+    student: (Student & { user: Pick<User, "id" | "name" | "email"> | null }) | null;
+};
+
+export type DashboardScope = "admin" | "teacher";
+
+export type DashboardOverview = {
+    scope: DashboardScope;
+    totalDepartments: number;
+    totalSubjects: number;
+    totalClasses: number;
+    classesByStatus: { status: string; count: number }[];
+    totalEnrollments: number;
+    avgCapacityUtilization: number;
+    usersByRole: { role: string; count: number }[] | null;
+};
+
+export type DashboardCharts = {
+    enrollmentTrends: { month: string; count: number }[];
+    classesByDepartment: { department: string; count: number }[];
+    capacityStatus: { status: CapacityStatus; count: number }[];
+    userDistribution: { role: string; count: number }[];
+};
+
+export type ActivityItem = {
+    type: "enrollment" | "class_created" | "user_created";
+    id: number | string;
+    label: string;
+    detail: string;
+    timestamp: string;
+};
+
+export type SearchResultItem = {
+    id: number | string;
+    label: string;
+    sublabel: string;
+    resource: "users" | "departments" | "subjects" | "classes";
+};
+
+export type SearchResults = {
+    users: SearchResultItem[];
+    departments: SearchResultItem[];
+    subjects: SearchResultItem[];
+    classes: SearchResultItem[];
+};
+
+export type UserProfileSummary =
+    | { teacherId: number; classes: { id: number; name: string; status: ClassStatus }[] }
+    | { studentId: number; enrollments: { id: number; classId: number; className: string; enrolledAt: string }[] }
+    | null;
+
+export type UserWithProfile = User & { profile: UserProfileSummary };
 
 export type SignUpPayload = {
     email: string;

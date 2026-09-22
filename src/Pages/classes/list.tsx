@@ -4,6 +4,7 @@ import { ListView } from '@/components/refine-ui/views/list-view';
 import { CreateButton } from '@/components/refine-ui/buttons/create';
 import { EditButton } from '@/components/refine-ui/buttons/edit';
 import { DeleteButton } from '@/components/refine-ui/buttons/delete';
+import { ShowButton } from '@/components/refine-ui/buttons/show';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,10 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pencil, Search, Trash } from 'lucide-react';
+import { Eye, Pencil, Search, Trash } from 'lucide-react';
 import { useTable } from '@refinedev/react-table';
+import { useSelect } from '@refinedev/core';
 import { useMemo, useState } from 'react';
-import { ClassWithRelations, ClassStatus } from '@/types';
+import { ClassWithRelations, ClassStatus, CapacityStatus, capacityStatusOf } from '@/types';
 import type { ColumnDef } from '@tanstack/react-table';
 
 const STATUS_OPTIONS: { value: ClassStatus; label: string }[] = [
@@ -25,15 +27,34 @@ const STATUS_OPTIONS: { value: ClassStatus; label: string }[] = [
   { value: 'archived', label: 'Archived' },
 ];
 
+const CAPACITY_OPTIONS: { value: CapacityStatus; label: string }[] = [
+  { value: 'available', label: 'Available' },
+  { value: 'nearFull', label: 'Nearly Full' },
+  { value: 'full', label: 'Full' },
+];
+
 const statusVariant = (status: ClassStatus) =>
   status === 'active' ? 'default' : status === 'archived' ? 'destructive' : 'secondary';
+
+const capacityVariant = (status: CapacityStatus) =>
+  status === 'available' ? 'default' : status === 'nearFull' ? 'secondary' : 'destructive';
 
 const ClassesList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [selectedCapacity, setSelectedCapacity] = useState('all');
+
+  const { options: subjectOptions } = useSelect({
+    resource: 'subjects',
+    optionLabel: 'name',
+    optionValue: 'id',
+  });
 
   const searchFilters = searchQuery ? [{ field: 'search', operator: 'contains' as const, value: searchQuery }] : [];
   const statusFilters = selectedStatus === 'all' ? [] : [{ field: 'status', operator: 'eq' as const, value: selectedStatus }];
+  const subjectFilters = selectedSubject === 'all' ? [] : [{ field: 'subjectId', operator: 'eq' as const, value: selectedSubject }];
+  const capacityFilters = selectedCapacity === 'all' ? [] : [{ field: 'capacityStatus', operator: 'eq' as const, value: selectedCapacity }];
 
   const classTable = useTable<ClassWithRelations>({
     columns: useMemo<ColumnDef<ClassWithRelations>[]>(() => [
@@ -76,15 +97,27 @@ const ClassesList = () => {
       {
         id: 'capacity',
         accessorKey: 'capacity',
-        size: 100,
+        size: 140,
         header: () => <p className='column-title'>Capacity</p>,
+        cell: ({ row }) => {
+          const { enrolledCount, capacity } = row.original;
+          const status = capacityStatusOf(enrolledCount, capacity);
+          return (
+            <Badge variant={capacityVariant(status)}>
+              {enrolledCount} / {capacity}
+            </Badge>
+          );
+        },
       },
       {
         id: 'actions',
-        size: 100,
+        size: 150,
         header: () => <p className='column-title'>Actions</p>,
         cell: ({ row }) => (
           <div className='flex gap-2'>
+            <ShowButton size='icon' variant='ghost' recordItemId={row.original.id}>
+              <Eye className='h-4 w-4' />
+            </ShowButton>
             <EditButton size='icon' variant='ghost' recordItemId={row.original.id}>
               <Pencil className='h-4 w-4' />
             </EditButton>
@@ -99,7 +132,7 @@ const ClassesList = () => {
       resource: 'classes',
       pagination: { pageSize: 10, mode: 'server' },
       filters: {
-        permanent: [...searchFilters, ...statusFilters],
+        permanent: [...searchFilters, ...statusFilters, ...subjectFilters, ...capacityFilters],
       },
     },
   });
@@ -132,6 +165,32 @@ const ClassesList = () => {
               {STATUS_OPTIONS.map((status) => (
                 <SelectItem key={status.value} value={status.value}>
                   {status.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger>
+              <SelectValue placeholder='Filter by subject' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Subjects</SelectItem>
+              {subjectOptions.map((option) => (
+                <SelectItem key={option.value} value={String(option.value)}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedCapacity} onValueChange={setSelectedCapacity}>
+            <SelectTrigger>
+              <SelectValue placeholder='Filter by capacity' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Capacities</SelectItem>
+              {CAPACITY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>

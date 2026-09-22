@@ -4,8 +4,12 @@ import { ListView } from '@/components/refine-ui/views/list-view';
 import { CreateButton } from '@/components/refine-ui/buttons/create';
 import { EditButton } from '@/components/refine-ui/buttons/edit';
 import { DeleteButton } from '@/components/refine-ui/buttons/delete';
+import { ShowButton } from '@/components/refine-ui/buttons/show';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -13,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Pencil, Search, Trash } from 'lucide-react';
+import { CalendarIcon, Eye, Pencil, Search, Trash, X } from 'lucide-react';
+import { format } from 'date-fns';
 import { useTable } from '@refinedev/react-table';
 import { useMemo, useState } from 'react';
 import { User, UserRole } from '@/types';
@@ -28,9 +33,13 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
 const UsersList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [joinedAfter, setJoinedAfter] = useState<Date>();
 
   const searchFilters = searchQuery ? [{ field: 'search', operator: 'contains' as const, value: searchQuery }] : [];
   const roleFilters = selectedRole === 'all' ? [] : [{ field: 'role', operator: 'eq' as const, value: selectedRole }];
+  const joinedAfterFilters = joinedAfter
+    ? [{ field: 'joinedAfter', operator: 'eq' as const, value: joinedAfter.toISOString() }]
+    : [];
 
   const userTable = useTable<User>({
     columns: useMemo<ColumnDef<User>[]>(() => [
@@ -67,10 +76,13 @@ const UsersList = () => {
       },
       {
         id: 'actions',
-        size: 100,
+        size: 150,
         header: () => <p className='column-title'>Actions</p>,
         cell: ({ row }) => (
           <div className='flex gap-2'>
+            <ShowButton size='icon' variant='ghost' recordItemId={row.original.id}>
+              <Eye className='h-4 w-4' />
+            </ShowButton>
             <EditButton size='icon' variant='ghost' recordItemId={row.original.id}>
               <Pencil className='h-4 w-4' />
             </EditButton>
@@ -85,7 +97,7 @@ const UsersList = () => {
       resource: 'users',
       pagination: { pageSize: 10, mode: 'server' },
       filters: {
-        permanent: [...searchFilters, ...roleFilters],
+        permanent: [...searchFilters, ...roleFilters, ...joinedAfterFilters],
       },
     },
   });
@@ -122,6 +134,22 @@ const UsersList = () => {
               ))}
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant='outline' className='justify-start font-normal'>
+                <CalendarIcon className='h-4 w-4' />
+                {joinedAfter ? `Joined after ${format(joinedAfter, 'PP')}` : 'Joined after...'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className='w-auto p-0'>
+              <Calendar mode='single' selected={joinedAfter} onSelect={setJoinedAfter} />
+            </PopoverContent>
+          </Popover>
+          {joinedAfter && (
+            <Button variant='ghost' size='icon' onClick={() => setJoinedAfter(undefined)}>
+              <X className='h-4 w-4' />
+            </Button>
+          )}
           <CreateButton />
         </div>
       </div>

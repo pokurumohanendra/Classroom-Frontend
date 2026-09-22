@@ -1,16 +1,17 @@
 import type { AuthProvider } from "@refinedev/core";
 import { kyInstance } from "./data";
 
-type Session = {
+export type Session = {
   user?: {
     id: string;
     name: string;
     email: string;
     image?: string | null;
+    role: "admin" | "teacher" | "student";
   };
 } | null;
 
-const getSession = async (): Promise<Session> => {
+export const getSession = async (): Promise<Session> => {
   try {
     return await kyInstance.get("auth/get-session").json<Session>();
   } catch {

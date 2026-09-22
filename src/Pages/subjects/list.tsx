@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Pencil, Search, Trash } from 'lucide-react';
+import { Eye, Pencil, Search, Trash } from 'lucide-react';
 import { useTable } from '@refinedev/react-table';
 import { useList } from '@refinedev/core';
 import { useMemo, useState } from 'react';
@@ -19,6 +19,7 @@ import { Department, SubjectWithDepartment } from '@/types';
 import type { ColumnDef } from '@tanstack/react-table';
 import { EditButton } from '@/components/refine-ui/buttons/edit';
 import { DeleteButton } from '@/components/refine-ui/buttons/delete';
+import { ShowButton } from '@/components/refine-ui/buttons/show';
 
 const SubjectsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,10 +71,13 @@ const SubjectsList = () => {
       },
       {
         id: 'actions',
-        size: 100,
+        size: 150,
         header: () => <p className='column-title '>Actions</p>,
         cell: ({ row }) => (
           <div className='flex gap-2'>
+            <ShowButton size='icon' variant='ghost' recordItemId={row.original.id}>
+              <Eye className='h-4 w-4' />
+            </ShowButton>
             <EditButton size='icon' variant='ghost' recordItemId={row.original.id}>
               <Pencil className='h-4 w-4' />
             </EditButton>
